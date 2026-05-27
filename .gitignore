@@ -1,0 +1,34 @@
+# Environment secrets
+.env
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+.venv/
+venv/
+
+# Node
+node_modules/
+.next/
+out/
+
+# Storage (runtime data)
+storage/*
+!storage/.gitkeep
+temp/*
+!temp/.gitkeep
+
+# IDE
+.commandcode/
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# DB files (SQLite runtime)
+*.db

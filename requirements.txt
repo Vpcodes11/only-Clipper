@@ -1,0 +1,12 @@
+fastapi
+uvicorn[standard]
+python-multipart
+openai
+yt-dlp
+python-dotenv
+aiofiles
+mediapipe
+opencv-python
+numpy
+sqlalchemy
+requests
