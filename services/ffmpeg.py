@@ -10,6 +10,9 @@ from services.config import FFMPEG_TIMEOUT_SECONDS, FFPROBE_TIMEOUT_SECONDS, THU
 
 logger = logging.getLogger(__name__)
 
+# Path to bundled fonts shipped with the project (no system install needed)
+FONTS_DIR = str(Path(__file__).parent.parent / "assets" / "fonts")
+
 # Video output presets
 PRESETS = {
     "tiktok": {"width": 1080, "height": 1920, "label": "TikTok / Reels (9:16)"},
@@ -165,7 +168,7 @@ CAPTION_STYLES = {
         "margin_v": 120,
     },
     "hormozi": {
-        "font": "Montserrat Black",
+        "font": "Montserrat-Black",
         "fontsize": 105,
         "primary_color": "&H0000FFFF",  # Yellow inactive
         "highlight_color": "&H00FFFFFF",  # White active
@@ -176,9 +179,10 @@ CAPTION_STYLES = {
         "shadow": 6,
         "alignment": 2,
         "margin_v": 120,
+        "words_per_group": 1,
     },
     "ali_abdaal": {
-        "font": "Inter",
+        "font": "Raleway-ExtraBold",
         "fontsize": 72,
         "primary_color": "&H00FFFFFF",  # White active
         "highlight_color": "&H00CCCCCC",  # Grey inactive
@@ -191,7 +195,7 @@ CAPTION_STYLES = {
         "margin_v": 200,
     },
     "beast_mode": {
-        "font": "Montserrat Black",
+        "font": "Montserrat-Black",
         "fontsize": 130,
         "primary_color": "&H000000FF",  # Red active
         "highlight_color": "&H00FFFFFF",  # White inactive
@@ -202,6 +206,104 @@ CAPTION_STYLES = {
         "shadow": 0,
         "alignment": 2,
         "margin_v": 80,
+        "words_per_group": 1,
+    },
+    # ── NEW PREMIUM AESTHETIC STYLES ───────────────────────────────────────────
+    "mrbeast": {
+        # MrBeast: giant 1-word-at-a-time, yellow on black stroke, high contrast
+        "font": "Anton-Regular",
+        "fontsize": 155,
+        "primary_color": "&H0000FFFF",   # Yellow
+        "highlight_color": "&H00FFFFFF", # White flash on active
+        "outline_color": "&H00000000",
+        "back_color": "&H00000000",
+        "bold": True,
+        "outline": 14,
+        "shadow": 0,
+        "alignment": 2,
+        "margin_v": 80,
+        "words_per_group": 1,
+        "label": "MrBeast",
+    },
+    "luxury": {
+        # Iman Gadzhi / luxury: white text, semi-transparent black box, clean Raleway
+        "font": "Raleway-ExtraBold",
+        "fontsize": 78,
+        "primary_color": "&H00FFFFFF",   # White
+        "highlight_color": "&H00F5C518", # Gold highlight
+        "outline_color": "&H00000000",
+        "back_color": "&HCC000000",       # 80% black box
+        "bold": True,
+        "outline": 0,
+        "shadow": 0,
+        "alignment": 2,
+        "margin_v": 100,
+        "words_per_group": 3,
+        "label": "Luxury / Clean",
+    },
+    "typewriter": {
+        # Typewriter: monospace-style, letters build dramatically
+        "font": "Bebas Neue",
+        "fontsize": 100,
+        "primary_color": "&H00FFFFFF",
+        "highlight_color": "&H0000D4FF",  # Orange-gold flash
+        "outline_color": "&H00000000",
+        "back_color": "&H00000000",
+        "bold": False,
+        "outline": 6,
+        "shadow": 8,
+        "alignment": 2,
+        "margin_v": 120,
+        "words_per_group": 1,
+        "label": "Typewriter",
+    },
+    "neon_glow": {
+        # Neon glow: electric cyan/magenta with heavy shadow for glow illusion
+        "font": "Bangers-Regular",
+        "fontsize": 115,
+        "primary_color": "&H00FF00FF",   # Magenta
+        "highlight_color": "&H0000FFFF", # Cyan flash
+        "outline_color": "&H00FF00FF",   # Magenta outline (glow)
+        "back_color": "&H00000000",
+        "bold": True,
+        "outline": 4,
+        "shadow": 20,                     # Heavy shadow = glow effect
+        "alignment": 2,
+        "margin_v": 100,
+        "words_per_group": 2,
+        "label": "Neon Glow",
+    },
+    "cinematic": {
+        # Cinematic: white text centered, subtle fade, Montserrat bold, no box
+        "font": "Montserrat-Bold",
+        "fontsize": 70,
+        "primary_color": "&H00FFFFFF",
+        "highlight_color": "&H00CCCCCC",
+        "outline_color": "&H00000000",
+        "back_color": "&H00000000",
+        "bold": True,
+        "outline": 3,
+        "shadow": 5,
+        "alignment": 5,                   # Center of screen
+        "margin_v": 0,
+        "words_per_group": 4,
+        "label": "Cinematic",
+    },
+    "sports": {
+        # Sports highlights: aggressive Bebas Neue, red/white, massive size
+        "font": "Bebas Neue",
+        "fontsize": 160,
+        "primary_color": "&H000000FF",   # Red
+        "highlight_color": "&H00FFFFFF", # White
+        "outline_color": "&H00000000",
+        "back_color": "&H00000000",
+        "bold": False,
+        "outline": 12,
+        "shadow": 0,
+        "alignment": 2,
+        "margin_v": 60,
+        "words_per_group": 1,
+        "label": "Sports",
     },
 }
 
@@ -220,14 +322,27 @@ EMOJIS = ["🚀", "🔥", "💎", "💰", "😱", "✅", "🛑", "👀", "🤯",
 
 DEFAULT_CAPTION_STYLE = "typography_motion"
 
+# Map font names used in styles → actual TTF filenames in assets/fonts/
+# The stem (without .ttf) is what ASS uses as the font name when fontsdir is set.
+FONT_FILE_MAP = {
+    "Montserrat-Black": "Montserrat-Black.ttf",
+    "Montserrat-ExtraBold": "Montserrat-ExtraBold.ttf",
+    "Montserrat-Bold": "Montserrat-Bold.ttf",
+    "Anton-Regular": "Anton-Regular.ttf",
+    "Bangers-Regular": "Bangers-Regular.ttf",
+    "Bebas Neue": "BebasNeue-Regular.ttf",
+    "BebasNeue-Regular": "BebasNeue-Regular.ttf",
+    "Raleway-ExtraBold": "Raleway-ExtraBold.ttf",
+}
+
 SAFE_FONT_FALLBACKS = {
-    "Montserrat ExtraBold": ["Montserrat", "Arial Black", "Impact", "Arial"],
-    "Montserrat Black": ["Montserrat", "Arial Black", "Impact", "Arial"],
-    "Outfit": ["Arial", "Verdana", "Tahoma", "Sans"],
-    "Komika Axis": ["Impact", "Arial Black", "Arial"],
-    "The Bold Font": ["Impact", "Arial Black", "Arial"],
+    "Montserrat ExtraBold": ["Montserrat-ExtraBold", "Montserrat-Black", "Arial Black", "Impact", "Arial"],
+    "Montserrat Black": ["Montserrat-Black", "Arial Black", "Impact", "Arial"],
+    "Outfit": ["Raleway-ExtraBold", "Arial", "Verdana", "Tahoma"],
+    "Komika Axis": ["Bangers-Regular", "Impact", "Arial Black", "Arial"],
+    "The Bold Font": ["Anton-Regular", "Impact", "Arial Black", "Arial"],
     "Segoe Script": ["Segoe UI", "Arial", "Verdana"],
-    "Inter": ["Arial", "Verdana", "Tahoma"],
+    "Inter": ["Raleway-ExtraBold", "Arial", "Verdana", "Tahoma"],
 }
 COMMON_FALLBACK_FONTS = ["Arial", "Verdana", "Tahoma", "Segoe UI", "Impact", "Sans"]
 
@@ -275,14 +390,26 @@ def is_font_available(font_name: str) -> bool:
 
 
 def resolve_ass_font(font_name: str) -> str:
-    """Resolves font name, falling back to clean cross-platform fallbacks if missing"""
+    """Resolves font name — checks bundled project fonts first, then system fonts."""
     if not font_name:
         return "Arial"
+    # 1. Check if font is in our bundled assets/fonts folder
+    if font_name in FONT_FILE_MAP:
+        font_path = Path(FONTS_DIR) / FONT_FILE_MAP[font_name]
+        if font_path.exists():
+            return font_name  # ASS will resolve via fontsdir
+    # 2. Check system fonts
     if is_font_available(font_name):
         return font_name
+    # 3. Try fallbacks — bundled first
     for fallback in SAFE_FONT_FALLBACKS.get(font_name, []):
+        if fallback in FONT_FILE_MAP:
+            font_path = Path(FONTS_DIR) / FONT_FILE_MAP[fallback]
+            if font_path.exists():
+                return fallback
         if is_font_available(fallback):
             return fallback
+    # 4. Common system fallbacks
     for fallback in COMMON_FALLBACK_FONTS:
         if is_font_available(fallback):
             return fallback
@@ -378,7 +505,10 @@ def generate_ass_subtitles(words, clip_start, clip_end, output_path, caption_sty
     bold_flag = -1 if style['bold'] else 0
     default_font = resolve_ass_font(style['font'])
     secondary_font = resolve_ass_font(style.get('secondary_font', default_font))
-    hook_font = resolve_ass_font("Montserrat Black")
+    hook_font = resolve_ass_font("Montserrat-Black")
+
+    # Escape fontsdir path for ASS (forward slashes, no colon escaping needed in Script Info)
+    fonts_dir_escaped = FONTS_DIR.replace('\\', '/')
 
     ass_header = f"""[Script Info]
 Title: Only Clipper Rebuilt Subtitles
@@ -386,6 +516,7 @@ ScriptType: v4.00+
 PlayResX: {tw}
 PlayResY: {th}
 WrapStyle: 0
+FontsDir: {fonts_dir_escaped}
 
 [V4+ Styles]
 Format: Name, Fontname, Fontsize, PrimaryColour, SecondaryColour, OutlineColour, BackColour, Bold, Italic, Underline, StrikeOut, ScaleX, ScaleY, Spacing, Angle, BorderStyle, Outline, Shadow, Alignment, MarginL, MarginR, MarginV, Encoding
@@ -408,11 +539,11 @@ Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text
         groups = []
         current_group = []
 
-        target_group_size = 2
+        target_group_size = style.get("words_per_group", 2)
         if caption_style == "hormozi":
             target_group_size = 1
-        elif caption_style == "minimal_modern":
-            target_group_size = 3
+        elif caption_style in ("minimal_modern", "luxury", "cinematic"):
+            target_group_size = style.get("words_per_group", 3)
 
         for word in clip_words:
             current_group.append(word)
@@ -533,6 +664,9 @@ def create_clip(video_path, clip_info, words, output_path, clip_index,
     hook_headline = clip_info.get('hook_caption', clip_info['title'])
     generate_ass_subtitles(words, start, end, ass_path, caption_style, preset, hook_headline)
 
+    # Escape fontsdir for FFmpeg filter (forward slashes, colon escaped on Windows)
+    fonts_dir_filt = FONTS_DIR.replace('\\', '/').replace(':', '\\:')
+
     # Escape paths for FFmpeg filters
     ass_escaped = ass_path.replace('\\', '/').replace(':', '\\:')
     src_w, src_h, _ = get_video_info(video_path)
@@ -549,7 +683,7 @@ def create_clip(video_path, clip_info, words, output_path, clip_index,
         filter_complex = (
             f"[0:v]crop={cw}:{ch}:{crop_x}:0,"
             f"scale={tw}:{th}[vid];"
-            f"[vid]ass='{ass_escaped}'[out]"
+            f"[vid]ass='{ass_escaped}':fontsdir='{fonts_dir_filt}'[out]"
         )
     else:
         # Standard rendering without dynamic face tracking
@@ -562,13 +696,13 @@ def create_clip(video_path, clip_info, words, output_path, clip_index,
                 f"crop={tw}:{th},boxblur=25:5[bg];"
                 f"[0:v]scale={tw}:{th}:force_original_aspect_ratio=decrease[fg];"
                 f"[bg][fg]overlay=(W-w)/2:(H-h)/2[vid];"
-                f"[vid]ass='{ass_escaped}'[out]"
+                f"[vid]ass='{ass_escaped}':fontsdir='{fonts_dir_filt}'[out]"
             )
         else:
             # Aspect ratios match: direct scale to avoid processing overhead
             filter_complex = (
                 f"[0:v]scale={tw}:{th}[vid];"
-                f"[vid]ass='{ass_escaped}'[out]"
+                f"[vid]ass='{ass_escaped}':fontsdir='{fonts_dir_filt}'[out]"
             )
 
     cmd = [
@@ -658,9 +792,10 @@ def safe_create_clip(video_path, clip_info, words, output_path, clip_index,
             crop_x = 0
             crop_y = (src_h - crop_h) // 2
 
+        fonts_dir_filt2 = FONTS_DIR.replace('\\', '/').replace(':', '\\:')
         filter_complex = (
             f"[0:v]crop={crop_w}:{crop_h}:{crop_x}:{crop_y},scale={tw}:{th}[vid];"
-            f"[vid]ass='{ass_escaped}'[out]"
+            f"[vid]ass='{ass_escaped}':fontsdir='{fonts_dir_filt2}'[out]"
         )
 
         cmd = [
