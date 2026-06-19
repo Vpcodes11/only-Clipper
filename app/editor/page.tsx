@@ -26,14 +26,16 @@ interface Word {
 }
 
 interface Clip {
+  id?: string;
+  clip_id?: string;
   filename: string;
   title: string;
   virality_score: number;
   duration?: string | number;
   hook_caption?: string;
   words?: Word[];
-  preview_url?: string;
-  thumbnail?: string;
+  url?: string;
+  thumbnail_url?: string;
   render_version?: number;
   start_time: number;
   end_time: number;
@@ -81,7 +83,7 @@ function EditorPage() {
   const pollTimerRef = useRef<any>(null);
   const isMountedRef = useRef(true);
 
-  const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
+  const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://127.0.0.1:8000";
 
   // Fetch job state from backend
   const fetchJobDetails = useCallback(async () => {
@@ -103,7 +105,8 @@ function EditorPage() {
             setWords(JSON.parse(JSON.stringify(initialClip.words || [])));
           } else {
             // Update the selected clip data from the fresh list (keep edits if not saving)
-            const freshActive = data.clips.find((c: any) => c.filename === selectedClip.filename);
+            const activeKey = selectedClip.clip_id || selectedClip.id || selectedClip.filename;
+            const freshActive = data.clips.find((c: any) => (c.clip_id || c.id || c.filename) === activeKey);
             if (freshActive && !isSaving) {
               setSelectedClip(freshActive);
               // Only reset words from backend if not currently editing them
@@ -207,6 +210,7 @@ function EditorPage() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           job_id: jobId,
+          clip_id: selectedClip.clip_id || selectedClip.id,
           filename: selectedClip.filename,
           title: title,
           hook_caption: hookCaption,
@@ -240,7 +244,8 @@ function EditorPage() {
               pollTimerRef.current = null;
               
               // Complete re-render, fetch fresh parameters
-              const updatedClip = statusData.clips.find((c: any) => c.filename === selectedClip.filename);
+              const activeKey = selectedClip.clip_id || selectedClip.id || selectedClip.filename;
+              const updatedClip = statusData.clips.find((c: any) => (c.clip_id || c.id || c.filename) === activeKey);
               setClips(statusData.clips);
               if (updatedClip) {
                 setSelectedClip(updatedClip);
@@ -275,8 +280,8 @@ function EditorPage() {
     }
   };
 
-  const previewSrc = selectedClip
-    ? `${apiUrl}/storage/${jobId}/${selectedClip.filename}?v=${selectedClip.render_version || 0}`
+  const previewSrc = selectedClip?.url
+    ? `${selectedClip.url}${selectedClip.url.includes("?") ? "&" : "?"}v=${selectedClip.render_version || 0}`
     : "";
 
   const clipDuration = selectedClip ? selectedClip.end_time - selectedClip.start_time : 10;
@@ -346,16 +351,17 @@ function EditorPage() {
             </div>
             <div className="clips-list-scroll">
               {clips.map((clip, index) => {
-                const isActive = selectedClip?.filename === clip.filename;
+                const clipKey = clip.clip_id || clip.id || clip.filename;
+                const isActive = (selectedClip?.clip_id || selectedClip?.id || selectedClip?.filename) === clipKey;
                 return (
                   <div
-                    key={clip.filename}
+                    key={clipKey}
                     onClick={() => selectClip(clip, index)}
                     className={`clip-item ${isActive ? "active" : ""}`}
                   >
                     <div className="clip-thumb-wrapper">
                       <img
-                        src={`${apiUrl}/storage/${jobId}/${clip.thumbnail}`}
+                        src={clip.thumbnail_url || ""}
                         alt={clip.title}
                         className="clip-thumb"
                         onError={(e) => {

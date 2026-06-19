@@ -1,61 +1,67 @@
 """
-SQLite database and SQLAlchemy ORM model setup.
-Simplified auth-free model representing only video processing Jobs.
+PostgreSQL database engine and session factory.
+Uses SQLAlchemy with Alembic-managed migrations.
 """
-import datetime
 import os
-from sqlalchemy import create_engine, Column, String, Integer, DateTime, JSON, event
-from sqlalchemy.ext.declarative import declarative_base
+from dotenv import load_dotenv
+from sqlalchemy import create_engine, inspect, text
 from sqlalchemy.orm import sessionmaker
+from api.models import Base
 
-# Database URL with storage folder fallback
-DATABASE_URL = os.getenv("DATABASE_URL", "sqlite:///storage/clipper.db")
+load_dotenv()
 
-# Ensure the parent storage folder exists
-db_path = DATABASE_URL.replace("sqlite:///", "")
-os.makedirs(os.path.dirname(os.path.abspath(db_path)), exist_ok=True)
+DATABASE_URL = os.getenv("DATABASE_URL", "postgresql://clipper:clipper@localhost:5432/clipper")
 
-engine = create_engine(
-    DATABASE_URL,
-    connect_args={"check_same_thread": False},  # Required for SQLite multithreading
-)
+engine_kwargs = {"pool_pre_ping": True}
+if not DATABASE_URL.startswith("sqlite"):
+    engine_kwargs.update({"pool_size": 10, "max_overflow": 20})
 
-# Enable WAL mode for concurrent reads + writes without locking
-@event.listens_for(engine, "connect")
-def _set_sqlite_pragma(dbapi_connection, connection_record):
-    cursor = dbapi_connection.cursor()
-    cursor.execute("PRAGMA journal_mode=WAL;")
-    cursor.execute("PRAGMA busy_timeout=5000;")
-    cursor.close()
+engine = create_engine(DATABASE_URL, **engine_kwargs)
 
-SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
-Base = declarative_base()
-
-
-class Job(Base):
-    __tablename__ = "jobs"
-
-    id = Column(String, primary_key=True, index=True)
-    status = Column(String, default="queued")              # queued, processing, complete, error
-    progress = Column(Integer, default=0)
-    message = Column(String, default="Initializing...")
-    stage = Column(String, default="queued")                # queued, preflighted, transcribed, analyzed, aligned, clips_rendering, clips_rendered, complete
-    
-    video_path = Column(String, nullable=True)
-    source = Column(String, nullable=True)                  # Pasted URL or original filename
-    provider = Column(String, nullable=True)                # groq, openai
-    preset = Column(String, nullable=True)                  # tiktok, youtube_shorts, square, landscape
-    caption_style = Column(String, nullable=True)           # typography_motion, hormozi, ali_abdaal, etc.
-
-    transcript = Column(JSON, nullable=True)                # Full Whisper transcript details
-    clip_candidates = Column(JSON, nullable=True)           # Candidates identified by LLM
-    clips = Column(JSON, nullable=True)                     # Rendered clips metadata
-    errors = Column(JSON, nullable=True)                     # Array of error stage & messages
-
-    created_at = Column(DateTime, default=datetime.datetime.utcnow)
-    updated_at = Column(DateTime, default=datetime.datetime.utcnow, onupdate=datetime.datetime.utcnow)
+SessionLocal = sessionmaker(autoflush=False, bind=engine)
 
 
 def init_db():
-    """Create all database tables if they do not exist"""
+    """Ensure all tables exist. Alembic handles migrations; this is a dev fallback."""
     Base.metadata.create_all(bind=engine)
+    _ensure_dev_schema_compatibility()
+
+
+def _ddl_type(column) -> str:
+    if DATABASE_URL.startswith("postgresql"):
+        name = column.type.__class__.__name__.lower()
+        if "json" in name:
+            return "JSONB"
+        elif "float" in name:
+            return "DOUBLE PRECISION"
+        elif "integer" in name or "bigint" in name:
+            return "INTEGER"
+        elif "datetime" in name:
+            return "TIMESTAMP"
+        elif "boolean" in name:
+            return "BOOLEAN"
+        elif "text" in name:
+            return "TEXT"
+        elif "enum" in name:
+            return "VARCHAR(255)"
+        return "VARCHAR"
+    return column.type.compile(dialect=engine.dialect)
+
+
+def _ensure_dev_schema_compatibility():
+    """
+    Add nullable columns introduced after the initial local DB was created.
+    Production deployments should still run Alembic; this keeps existing dev
+    SQLite/Postgres databases from crashing at startup during active rebuilds.
+    """
+    inspector = inspect(engine)
+    existing_tables = set(inspector.get_table_names())
+    with engine.begin() as conn:
+        for table in Base.metadata.sorted_tables:
+            if table.name not in existing_tables:
+                continue
+            existing_columns = {c["name"] for c in inspector.get_columns(table.name)}
+            for column in table.columns:
+                if column.name in existing_columns or column.primary_key or not column.nullable:
+                    continue
+                conn.execute(text(f"ALTER TABLE {table.name} ADD COLUMN {column.name} {_ddl_type(column)}"))

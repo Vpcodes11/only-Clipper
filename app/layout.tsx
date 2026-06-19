@@ -1,7 +1,7 @@
 import React from "react";
 import type { Metadata } from "next";
 import Link from "next/link";
-import { Film, LayoutDashboard, UploadCloud } from "lucide-react";
+import { Film, LayoutDashboard, UploadCloud, Scissors } from "lucide-react";
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -18,7 +18,6 @@ export default function RootLayout({
     <html lang="en">
       <body>
         <div className="app-container">
-          {/* Reusable Sidebar Navigation */}
           <aside className="app-sidebar">
             <Link href="/dashboard" className="brand-logo">
               <Film size={24} />
@@ -30,6 +29,10 @@ export default function RootLayout({
                 <LayoutDashboard size={18} />
                 <span>Dashboard</span>
               </Link>
+              <Link href="/dashboard/clips" className="nav-item">
+                <Scissors size={18} />
+                <span>Clip Library</span>
+              </Link>
               <Link href="/upload" className="nav-item">
                 <UploadCloud size={18} />
                 <span>New Project</span>
@@ -37,7 +40,6 @@ export default function RootLayout({
             </nav>
           </aside>
 
-          {/* Core App View */}
           <main className="app-content">
             {children}
           </main>

@@ -8,6 +8,8 @@ import uuid
 import logging
 import subprocess
 import shutil
+from dotenv import load_dotenv
+load_dotenv()
 
 
 # Configure logger
@@ -19,7 +21,8 @@ sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 # Resilient imports
 try:
-    from api.database import SessionLocal, Job, init_db
+    from api.database import SessionLocal, init_db
+    from api.models import Job
     from services.ffmpeg import get_video_info, generate_thumbnail, safe_create_clip
     from services.clipping import align_clip_boundaries
     from services.face_processor import tracker

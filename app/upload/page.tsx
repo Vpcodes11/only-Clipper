@@ -6,6 +6,7 @@ import { UploadCloud, Link as LinkIcon, Loader2, PlayCircle, Sliders, Cpu } from
 
 export default function NewProject() {
   const router = useRouter();
+  const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://127.0.0.1:8000";
   
   // Form fields state
   const [url, setUrl] = useState("");
@@ -26,8 +27,7 @@ export default function NewProject() {
   useEffect(() => {
     const fetchOptions = async () => {
       try {
-        const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
-        const res = await fetch(`${apiUrl}/api/presets`);
+        const res = await fetch(`/api/presets`);
         if (res.ok) {
           const data = await res.json();
           setAvailablePresets(data.presets || {});
@@ -92,7 +92,6 @@ export default function NewProject() {
     setUploadProgress(0);
 
     try {
-      const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
       const formData = new FormData();
       formData.append("preset", preset);
       formData.append("caption_style", captionStyle);
@@ -125,7 +124,7 @@ export default function NewProject() {
               const err = JSON.parse(xhr.responseText);
               reject(new Error(err.detail || "Upload failed. Check file bounds or URL protocol."));
             } catch {
-              reject(new Error("Server returned an error status."));
+              reject(new Error(`Server returned ${xhr.status}: ${xhr.responseText || xhr.statusText}`));
             }
           }
         };
@@ -302,181 +301,6 @@ export default function NewProject() {
         </div>
       </form>
 
-      <style jsx>{`
-        .upload-root {
-          display: flex;
-          flex-direction: column;
-          gap: 32px;
-          animation: fade 0.3s ease;
-        }
-        .upload-header {
-          display: flex;
-          flex-direction: column;
-          gap: 4px;
-        }
-        .subtitle {
-          color: var(--muted);
-        }
-        .error-banner {
-          background: rgba(244, 63, 94, 0.1);
-          border: 1px solid rgba(244, 63, 94, 0.2);
-          border-radius: 12px;
-          padding: 16px;
-          color: #fda4af;
-          font-size: 14px;
-        }
-        .upload-form {
-          width: 100%;
-        }
-        .form-main {
-          display: grid;
-          grid-template-columns: 1.8fr 1fr;
-          gap: 32px;
-          align-items: start;
-        }
-        .source-card {
-          padding: 40px;
-          display: flex;
-          flex-direction: column;
-          gap: 32px;
-        }
-        .dropzone {
-          border: 2px dashed var(--card-border);
-          border-radius: 20px;
-          background: rgba(255, 255, 255, 0.01);
-          transition: all 0.2s ease;
-          min-height: 250px;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-        }
-        .dropzone.dragging {
-          border-color: var(--secondary);
-          background: rgba(6, 182, 212, 0.05);
-        }
-        .dropzone.has-file {
-          border-style: solid;
-          background: rgba(255, 255, 255, 0.02);
-        }
-        .dropzone-label {
-          display: flex;
-          flex-direction: column;
-          align-items: center;
-          gap: 12px;
-          cursor: pointer;
-          width: 100%;
-          padding: 40px;
-          text-align: center;
-        }
-        .dropzone-label h3 {
-          font-size: 16px;
-        }
-        .dropzone-label p {
-          color: var(--muted);
-          font-size: 13px;
-        }
-        .file-preview {
-          display: flex;
-          flex-direction: column;
-          align-items: center;
-          gap: 12px;
-          padding: 40px;
-          text-align: center;
-        }
-        .file-preview h3 {
-          font-size: 16px;
-          word-break: break-all;
-          max-width: 400px;
-        }
-        .file-preview p {
-          color: var(--muted);
-          font-size: 13px;
-        }
-        .btn-sm {
-          padding: 6px 12px;
-          border-radius: 8px;
-          font-size: 12px;
-        }
-        .divider {
-          display: flex;
-          align-items: center;
-          text-align: center;
-          color: var(--muted-dark);
-          font-size: 12px;
-          font-weight: 700;
-        }
-        .divider::before,
-        .divider::after {
-          content: "";
-          flex: 1;
-          border-bottom: 1px solid var(--card-border);
-        }
-        .divider::before {
-          margin-right: 16px;
-        }
-        .divider::after {
-          margin-left: 16px;
-        }
-        .url-input-wrapper {
-          display: flex;
-          flex-direction: column;
-          gap: 8px;
-        }
-        .input-label {
-          display: flex;
-          align-items: center;
-          gap: 8px;
-          font-size: 13px;
-          font-weight: 650;
-          color: rgba(255,255,255,0.8);
-        }
-        .input-hint {
-          color: var(--muted-dark);
-          font-size: 11px;
-        }
-        
-        .settings-card {
-          padding: 32px;
-          display: flex;
-          flex-direction: column;
-          gap: 24px;
-        }
-        .settings-card h2 {
-          font-size: 18px;
-          display: flex;
-          align-items: center;
-        }
-        .mr-2 { margin-right: 8px; }
-        .mr-1 { margin-right: 4px; }
-        .text-secondary { color: var(--secondary); }
-        .setting-group {
-          display: flex;
-          flex-direction: column;
-          gap: 8px;
-        }
-        .setting-group label {
-          font-size: 13px;
-          font-weight: 600;
-          color: var(--muted);
-        }
-        .submit-btn {
-          width: 100%;
-          min-height: 48px;
-          font-size: 15px;
-          margin-top: 12px;
-        }
-        
-        @keyframes fade {
-          from { opacity: 0; transform: translateY(8px); }
-          to { opacity: 1; transform: translateY(0); }
-        }
-        
-        @media (max-width: 860px) {
-          .form-main {
-            grid-template-columns: 1fr;
-          }
-        }
-      `}</style>
     </div>
   );
 }

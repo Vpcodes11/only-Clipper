@@ -542,16 +542,12 @@ def create_clip(video_path, clip_info, words, output_path, clip_index,
         cw = tracking['crop_w']
         ch = tracking['crop_h']
 
-        sendcmd_path = os.path.join(work_dir, f"crop_cmd_{clip_index}.txt")
-        tracker.generate_sendcmd_file(tracking, sendcmd_path)
-        sendcmd_escaped = sendcmd_path.replace('\\', '/').replace(':', '\\:')
-
         centers = list(tracking['coords'].values())
         median_x = sorted(centers)[len(centers) // 2]
-        crop_x = int(median_x - (cw / 2))
+        crop_x = max(0, min(int(median_x - (cw / 2)), src_w - cw))
 
         filter_complex = (
-            f"[0:v]crop={cw}:{ch}:{crop_x}:0:sendcmd=f='{sendcmd_escaped}',"
+            f"[0:v]crop={cw}:{ch}:{crop_x}:0,"
             f"scale={tw}:{th}[vid];"
             f"[vid]ass='{ass_escaped}'[out]"
         )
